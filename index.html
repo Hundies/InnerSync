@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="InnerSync">
+<meta name="theme-color" content="#FFFFFF">
+<title>InnerSync</title>
+<style>
+:root{
+  --red:#FF2D55; --redSoft:#FFE5EA;
+  --bg:#FFFFFF; --card:#F2F2F7; --text:#000; --sub:#8E8E93; --line:#E5E5EA;
+  --blue:#0A84FF;
+  --c-exercise:#FF2D55; --c-food:#FF9500; --c-supp:#34C759; --c-checkup:#0A84FF;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--text);padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+header{padding:calc(env(safe-area-inset-top) + 14px) 16px 6px}
+header .date{font-size:13px;font-weight:600;color:var(--sub)}
+header h1{font-size:34px;font-weight:800;letter-spacing:-.5px;color:var(--red)}
+header{position:relative}
+.gear{position:absolute;right:12px;bottom:10px;width:38px;height:38px;border:none;border-radius:50%;background:rgba(120,120,128,.14);color:var(--red);display:flex;align-items:center;justify-content:center}
+.gear svg{width:22px;height:22px}
+.set-list{background:var(--card);border-radius:12px;overflow:hidden;margin-top:8px}
+.set-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border:none;background:none;width:100%;font-family:inherit;font-size:16px;color:var(--text);text-align:left}
+.set-row+.set-row{border-top:.5px solid var(--line)}
+.set-row .si{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.set-row .si svg{width:18px;height:18px}
+.set-row .ar{margin-left:auto;color:#C7C7CC;font-size:20px}
+.set-note{font-size:13px;color:var(--sub);margin:8px 6px 0;line-height:1.4}
+main{padding:8px 16px 20px}
+.sec-title{font-size:20px;font-weight:700;margin:22px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.card-head{display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;margin-bottom:8px}
+.card-head svg{width:18px;height:18px}
+.card-head .time{margin-left:auto;color:var(--sub);font-weight:400;font-size:13px}
+.big{font-size:30px;font-weight:700}
+.big small{font-size:16px;color:var(--sub);font-weight:600;margin-left:3px}
+.muted{color:var(--sub);font-size:14px}
+.row{display:flex;align-items:center;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2 .card{margin-bottom:0}
+.btn{border:none;background:var(--red);color:#fff;font-size:16px;font-weight:600;padding:12px 16px;border-radius:12px;width:100%;font-family:inherit}
+.btn.ghost{background:var(--redSoft);color:var(--red)}
+.btn.small{width:auto;padding:8px 14px;font-size:14px}
+.round{width:44px;height:44px;border-radius:50%;border:none;background:#E5F1FF;color:var(--blue);font-size:24px;font-weight:600;font-family:inherit}
+input,textarea{width:100%;font-family:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--card);color:var(--text);-webkit-appearance:none;appearance:none}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:13px;color:var(--sub);margin:10px 0 5px}
+.empty{color:var(--sub);text-align:center;padding:22px 0;font-size:14px}
+
+/* 필터 (리퀴드 글래스 토글) */
+.filter{position:sticky;top:calc(env(safe-area-inset-top) + 6px);z-index:5;display:flex;margin:4px 0 14px;padding:4px;border-radius:999px;
+  background:rgba(120,120,128,.20);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.6)}
+.filter .glass{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/4);border-radius:999px;
+  background:linear-gradient(160deg,rgba(255,255,255,.28) 0%,rgba(255,255,255,.06) 45%,rgba(255,255,255,.16) 100%);
+  backdrop-filter:blur(2px) saturate(170%) brightness(1.08);-webkit-backdrop-filter:blur(2px) saturate(170%) brightness(1.08);
+  box-shadow:0 4px 14px rgba(0,0,0,.10),
+    inset 0 1.5px 1px rgba(255,255,255,.95),
+    inset 0 -1.5px 1px rgba(255,255,255,.55),
+    inset 1px 0 1px rgba(255,255,255,.35),inset -1px 0 1px rgba(255,255,255,.35),
+    inset 0 0 0 .5px rgba(255,255,255,.7),
+    inset 0 -6px 10px rgba(255,255,255,.12);
+  transition:transform .45s cubic-bezier(.34,1.45,.55,1),width .2s;will-change:transform}
+.filter.press .glass{width:calc((100% - 8px)/4 + 6px);margin-left:-3px}
+.filter button{position:relative;z-index:1;flex:1;border:none;background:none;color:#3C3C43;font-family:inherit;font-size:15px;font-weight:600;padding:9px 0;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;transition:color .3s}
+.filter button .dot{width:8px;height:8px;border-radius:50%;opacity:.55;transition:opacity .3s}
+.filter button.on .dot{opacity:1}
+
+/* 타임라인 카드 */
+.day-label{font-size:13px;font-weight:600;color:var(--sub);margin:16px 4px 6px;display:flex;justify-content:space-between}
+.entry{display:flex;background:var(--card);border-radius:12px;margin-bottom:8px;overflow:hidden}
+.entry .bar{width:5px;flex-shrink:0}
+.entry .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin:12px 0 12px 12px;flex-shrink:0}
+.entry .ico svg{width:19px;height:19px;color:#fff}
+.entry .body{flex:1;min-width:0;padding:11px 12px}
+.entry .t{font-size:16px;font-weight:600;word-break:break-all}
+.entry .s{font-size:13px;color:var(--sub);margin-top:2px;white-space:pre-wrap;word-break:break-all}
+.entry .tag{font-size:12px;font-weight:600;padding:3px 8px;border-radius:20px;align-self:center;margin-right:12px;white-space:nowrap}
+
+.tumblers{display:flex;flex-wrap:wrap;gap:10px;min-height:86px;align-items:flex-end;margin:12px 0 4px}
+.tumbler{width:34px;height:84px;border:none;background:none;padding:0}
+.tumbler svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.12))}
+.tumbler.pop{animation:pop .5s cubic-bezier(.34,1.6,.5,1)}
+@keyframes pop{0%{transform:translateY(16px) scale(.3);opacity:0}100%{transform:none;opacity:1}}
+.water-empty{color:var(--sub);font-size:14px;align-self:center;width:100%;text-align:center}
+.water-add{border:none;background:#E5F1FF;color:var(--blue);font-family:inherit;font-size:16px;font-weight:700;padding:12px 18px;border-radius:12px}
+.liter{font-family:'Snell Roundhand','Apple Chancery','Brush Script MT',cursive;font-style:italic;font-weight:400;font-size:30px;color:var(--sub);margin-left:3px}
+.goal-btn{border:none;background:none;color:var(--blue);font-family:inherit;font-size:14px;font-weight:600;padding:4px 6px}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.heat div{aspect-ratio:1;border-radius:5px;background:var(--line)}
+.heat div.on{background:var(--red)}
+.heat div.today{outline:2px solid var(--text);outline-offset:1px}
+.streak{display:flex;align-items:baseline;gap:4px}
+.flame{width:22px;height:22px;color:var(--red)}
+.dday{font-size:26px;font-weight:800;color:var(--c-checkup)}
+
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(249,249,249,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:.5px solid #ccc;display:flex;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:10}
+nav button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:#999;font-size:10px;font-family:inherit;font-weight:500}
+nav button svg{width:26px;height:26px}
+nav button.on{color:var(--red)}
+.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;border:none;color:#fff;font-size:32px;font-weight:300;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:9;display:none}
+
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20;display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-radius:14px 14px 0 0;padding:14px 16px calc(20px + env(safe-area-inset-bottom));z-index:21;transform:translateY(100%);transition:transform .25s;max-height:90vh;overflow-y:auto}
+.sheet.open{transform:none}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sheet-head b{font-size:17px}
+.sheet-head button{border:none;background:none;color:var(--red);font-size:17px;font-family:inherit}
+.seg{display:flex;background:var(--line);border-radius:9px;padding:2px;margin-top:4px}
+.seg button{flex:1;border:none;background:none;padding:7px 0;border-radius:7px;font-size:14px;font-family:inherit;color:var(--text)}
+.seg button.on{background:#fff;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+</style>
+</head>
+<body>
+<header><div class="date" id="hDate"></div><h1 id="hTitle">Overview</h1>
+<button class="gear" id="gear" onclick="settingsSheet()" aria-label="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>
+</header>
+<input type="file" id="importFile" accept=".json,application/json,text/plain" style="display:none" onchange="importData(this)">
+<main id="app"></main>
+<button class="fab" id="fab" onclick="entrySheet()">+</button>
+
+<nav id="nav">
+  <button data-tab="summary" class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.7-9.2C.8 8.6 2.6 4.5 6.5 4.5c2.2 0 3.6 1.2 5.5 3.2 1.9-2 3.3-3.2 5.5-3.2 3.9 0 5.7 4.1 4.2 7.3C19.5 16.4 12 21 12 21z"/></svg>Overview</button>
+  <button data-tab="routine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Routine</button>
+</nav>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet"></div>
+
+<script>
+// ---------- 저장 ----------
+const KEY='health_v2';
+const def={entries:[],water:{}};
+const TUMBLER_ML=500;
+let D;
+try{D=Object.assign({},def,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){D={...def}}
+// 이전 버전(v1) 데이터가 있으면 옮겨오기
+try{
+  const old=JSON.parse(localStorage.getItem('health_v1')||'null');
+  if(old&&!localStorage.getItem(KEY)){
+    const u=()=>Math.random().toString(36).slice(2,10);
+    Object.entries(old.meals||{}).forEach(([d,l])=>l.forEach(m=>D.entries.push({id:u(),cat:'food',date:d,title:m.name,slot:m.slot,kcal:m.kcal,memo:m.memo})));
+    Object.entries(old.exercise||{}).forEach(([d,e])=>{if(e.done)D.entries.push({id:u(),cat:'exercise',date:d,title:e.note||'운동',memo:''})});
+    (old.checkups||[]).forEach(c=>D.entries.push({id:u(),cat:'checkup',date:c.date,title:c.type,place:c.place,memo:c.memo}));
+    
+  }
+}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){alert('저장 실패')}};
+save();
+
+// ---------- 날짜 ----------
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>ymd(new Date());
+const addDay=(s,n)=>{const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d)};
+const W=['일','월','화','수','목','금','토'];
+const fmt=s=>{const d=new Date(s+'T00:00:00');return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+W[d.getDay()]+')'};
+const fmtY=s=>{const d=new Date(s+'T00:00:00');return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.'};
+const diffDays=(a,b)=>Math.round((new Date(a+'T00:00:00')-new Date(b+'T00:00:00'))/864e5);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+// ---------- 아이콘 ----------
+const I={
+  flame:'<svg class="flame" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 2s1 3.5-1.5 6.5S8 12 8 15a4 4 0 0 0 8 0c0-1.5-.6-2.6-.6-2.6s2.6 1.3 2.6 4.6A6 6 0 0 1 6 17c0-5 4-7 5-10 .6-1.8 2.5-5 2.5-5z"/></svg>',
+  drop:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s7 7.6 7 12.5A7 7 0 0 1 5 14.5C5 9.6 12 2 12 2z"/></svg>',
+  exercise:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="14" cy="4" r="2"/><path d="M10.5 8.5 7 10l-1 3.5 1.8.5.8-2.6 1.6-.6-1.5 5.6L5 17.5l.6 1.8 4.8-1.2 1.1-2.4 2 2v4.3h1.9v-5.2l-2.2-2.3.7-2.8 1.3 1.8H19v-1.8h-3l-2-3c-.8-1.1-2.2-1.4-3.5-.9z"/></svg>',
+  food:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 3v8m-3-8v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></svg>',
+  supp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/></svg>',
+  checkup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>'
+};
+
+// ---------- 카테고리 ----------
+const CATS={
+  exercise:{name:'운동',color:'var(--c-exercise)',soft:'#FFE5EA'},
+  food:{name:'식단',color:'var(--c-food)',soft:'#FFF1DE'},
+  supp:{name:'영양제',color:'var(--c-supp)',soft:'#E3F7E8'},
+  checkup:{name:'검진',color:'var(--c-checkup)',soft:'#E5F1FF'}
+};
+const SLOTS=['아침','점심','저녁','간식'];
+const byCat=c=>D.entries.filter(e=>e.cat===c);
+
+// ---------- 스트릭 ----------
+// 오늘 했으면 오늘부터, 아직이면 어제부터 거꾸로 연속 일수를 셈
+function streak(isDone){let d=today(),n=0;if(!isDone(d))d=addDay(d,-1);while(isDone(d)){n++;d=addDay(d,-1)}return n}
+function best(isDone,keys){let b=0;[...new Set(keys)].forEach(k=>{if(!isDone(k)||isDone(addDay(k,1)))return;let n=0,d=k;while(isDone(d)){n++;d=addDay(d,-1)}b=Math.max(b,n)});return b}
+const exDays=()=>new Set(byCat('exercise').map(e=>e.date));
+const exDone=d=>exDays().has(d);
+function nextCheckup(){const t=today();return byCat('checkup').filter(c=>c.date>=t).sort((a,b)=>a.date.localeCompare(b.date))[0]}
+
+// ---------- 화면 ----------
+let tab='summary', filter='exercise';
+const $app=document.getElementById('app'), $fab=document.getElementById('fab');
+
+function render(){
+  document.getElementById('hTitle').textContent=tab==='summary'?'Overview':'Routine';
+  document.getElementById('hDate').textContent=fmt(today());
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  $fab.style.display=tab==='routine'?'block':'none';
+  document.getElementById('gear').style.display=tab==='summary'?'flex':'none';
+  $fab.style.background=CATS[filter].color;
+  $app.innerHTML=tab==='summary'?vSummary():vRoutine();
+}
+
+function vSummary(){
+  const t=today(), w=D.water[t]||0;
+  const foods=byCat('food').filter(e=>e.date===t), kcal=foods.reduce((s,m)=>s+(+m.kcal||0),0);
+  const supps=byCat('supp').filter(e=>e.date===t);
+  const nc=nextCheckup();
+  return `
+  <div class="sec-title">물 섭취</div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="big">${liters(w)}<span class="liter">ℓ</span></div>
+      <button class="water-add" onclick="addWater()">+ 500ml</button>
+    </div>
+    <div class="tumblers">${w?Array.from({length:w},(_,i)=>`<button class="tumbler ${i===w-1&&justAdded?'pop':''}" onclick="removeWater()">${TUMBLER_SVG}</button>`).join(''):'<div class="water-empty">아직 마신 물이 없어요</div>'}</div>
+  </div>
+
+  <div class="sec-title">오늘</div>
+  <div class="grid2">
+    <div class="card" onclick="goRoutine('exercise')">
+      <div class="card-head" style="color:var(--c-exercise)">${I.exercise}운동</div>
+      <div class="streak">${I.flame}<span class="big">${streak(exDone)}<small>일</small></span></div>
+      <div class="muted">${exDone(t)?'오늘 완료':'오늘 아직'}</div>
+    </div>
+    <div class="card" onclick="goRoutine('food')">
+      <div class="card-head" style="color:var(--c-food)">${I.food}식단</div>
+      <div class="big">${kcal.toLocaleString()}<small>kcal</small></div>
+      <div class="muted">${foods.length}개 기록</div>
+    </div>
+    <div class="card" onclick="goRoutine('supp')">
+      <div class="card-head" style="color:var(--c-supp)">${I.supp}영양제</div>
+      <div class="big">${supps.length}<small>개</small></div>
+      <div class="muted">${supps.length?esc(supps.map(s=>s.title).join(', ')):'아직 안 먹음'}</div>
+    </div>
+    <div class="card" onclick="goRoutine('checkup')">
+      <div class="card-head" style="color:var(--c-checkup)">${I.checkup}검진</div>
+      ${nc?`<div class="big" style="color:var(--c-checkup)">${diffDays(nc.date,t)===0?'D-DAY':'D-'+diffDays(nc.date,t)}</div><div class="muted">${esc(nc.title)}</div>`:'<div class="big">-</div><div class="muted">예정 없음</div>'}
+    </div>
+  </div>
+`;
+}
+
+const CAT_KEYS=Object.keys(CATS);
+function vRoutine(){
+  const idx=CAT_KEYS.indexOf(filter);
+  const chips=`<div class="filter" id="filter">
+    <div class="glass" id="glass" style="transform:translateX(${idx*100}%)"></div>
+    ${CAT_KEYS.map(k=>`<button class="${k===filter?'on':''}" style="${k===filter?'color:'+CATS[k].color:''}" data-k="${k}"><span class="dot" style="background:${CATS[k].color}"></span>${CATS[k].name}</button>`).join('')}</div>`;
+  return chips+`<div id="routineBody">${vRoutineBody()}</div>`;
+}
+// 필터 바: 누르는 동안 유리가 살짝 커지고, 떼면 해당 칸으로 미끄러짐
+document.addEventListener('pointerdown',e=>{const f=e.target.closest('#filter');if(f)f.classList.add('press')});
+document.addEventListener('pointerup',()=>{const f=document.getElementById('filter');if(f)f.classList.remove('press')});
+document.addEventListener('pointercancel',()=>{const f=document.getElementById('filter');if(f)f.classList.remove('press')});
+document.addEventListener('click',e=>{const b=e.target.closest('#filter button');if(b)setFilter(b.dataset.k)});
+
+function vRoutineBody(){
+  const c=CATS[filter], t=today();
+  // 카테고리별 상단 카드
+  let top='';
+  if(filter==='checkup'){
+    const nc=nextCheckup();
+    if(nc)top=`<div class="card"><div class="card-head" style="color:var(--c-checkup)">${I.checkup}다음 검진</div>
+      <div class="dday">${diffDays(nc.date,t)===0?'D-DAY':'D-'+diffDays(nc.date,t)}</div><div class="muted">${fmtY(nc.date)} · ${esc(nc.title)}${nc.place?' · '+esc(nc.place):''}</div></div>`;
+  }
+
+  // 날짜별 묶기
+  const list=byCat(filter).sort((a,b)=>b.date.localeCompare(a.date)||(SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot)));
+  const groups={};list.forEach(e=>(groups[e.date]=groups[e.date]||[]).push(e));
+  const body=Object.keys(groups).length?Object.entries(groups).map(([d,items])=>{
+    let right='';
+    if(filter==='food'){const k=items.reduce((s,m)=>s+(+m.kcal||0),0);if(k)right=k.toLocaleString()+' kcal'}
+    return `<div class="day-label"><span>${fmt(d)}${d===t?' · 오늘':''}</span><span>${right}</span></div>`+items.map(entryCard).join('');
+  }).join(''):`<div class="empty">${c.name} 기록이 없어요.<br>오른쪽 아래 + 버튼으로 추가하세요.</div>`;
+
+  return top+body;
+}
+
+function entryCard(e){
+  const c=CATS[e.cat], t=today();
+  let sub=[], tag='';
+  if(e.cat==='food'){if(e.slot)tag=e.slot;if(e.kcal)sub.push((+e.kcal).toLocaleString()+' kcal')}
+  if(e.cat==='supp'&&e.dose)sub.push(e.dose);
+  if(e.cat==='checkup'){if(e.place)sub.push(e.place);tag=e.date<t?'완료':'예정'}
+  if(e.memo)sub.push(e.memo);
+  return `<div class="entry" onclick="entrySheet('${e.id}')">
+    <div class="bar" style="background:${c.color}"></div>
+    <div class="ico" style="background:${c.color}">${I[e.cat]}</div>
+    <div class="body"><div class="t">${esc(e.title)}</div>${sub.length?`<div class="s">${esc(sub.join(' · '))}</div>`:''}</div>
+    ${tag?`<span class="tag" style="background:${c.soft};color:${c.color}">${esc(tag)}</span>`:''}
+  </div>`;
+}
+
+// ---------- 동작 ----------
+function go(t){tab=t;window.scrollTo(0,0);render()}
+function goRoutine(f){filter=f;go('routine')}
+function setFilter(f){
+  if(f===filter)return;
+  filter=f;
+  const g=document.getElementById('glass'), body=document.getElementById('routineBody');
+  if(!g||!body)return render();
+  g.style.transform=`translateX(${CAT_KEYS.indexOf(f)*100}%)`;
+  document.querySelectorAll('#filter button').forEach(b=>{const on=b.dataset.k===f;b.classList.toggle('on',on);b.style.color=on?CATS[f].color:''});
+  body.innerHTML=vRoutineBody();
+  $fab.style.background=CATS[f].color;
+}
+document.getElementById('nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.tab)};
+let justAdded=false;
+const liters=n=>String(+(n*TUMBLER_ML/1000).toFixed(1));
+function addWater(){const t=today();D.water[t]=(D.water[t]||0)+1;save();justAdded=true;render();justAdded=false}
+function removeWater(){const t=today();if(!(D.water[t]>0))return;if(!confirm('텀블러 1개(500ml)를 지울까요?'))return;D.water[t]--;save();render()}
+// 텀블러 그림 (세이지 민트 본체 + 검정 뚜껑)
+const TUMBLER_SVG=`<svg viewBox="0 0 40 100" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="tb" x1="0" x2="1"><stop offset="0" stop-color="#D2E9C8"/><stop offset=".18" stop-color="#E3F3DB"/><stop offset=".55" stop-color="#CDE6C3"/><stop offset=".78" stop-color="#C1DDB7"/><stop offset="1" stop-color="#B2D2A8"/></linearGradient>
+<linearGradient id="tl" x1="0" x2="1"><stop offset="0" stop-color="#2A2A2A"/><stop offset=".3" stop-color="#3A3A3A"/><stop offset="1" stop-color="#151515"/></linearGradient></defs>
+<path d="M3.2 21 L36.8 21 L35.4 92 Q35.2 98 29.5 98 L10.5 98 Q4.8 98 4.6 92 Z" fill="url(#tb)"/>
+<path d="M27.5 21 L36.8 21 L35.4 92 Q35.2 98 29.5 98 L27 98 Z" fill="#000" opacity=".05"/>
+<path d="M7 24 L8 92" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+<path d="M2.5 22 L2.5 10 Q2.5 4 9 3.5 L31 3.5 Q37.5 4 37.5 10 L37.5 22 Z" fill="url(#tl)"/>
+<rect x="2" y="20" width="36" height="2" fill="#000" opacity=".35"/>
+<path d="M5 8 L5 18" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".18"/>
+</svg>`;
+
+// ---------- 입력창 ----------
+const $sheet=document.getElementById('sheet'),$bg=document.getElementById('sheetBg');
+function openSheet(html){$sheet.innerHTML=html;$bg.style.display='block';requestAnimationFrame(()=>$sheet.classList.add('open'))}
+function closeSheet(){$sheet.classList.remove('open');setTimeout(()=>$bg.style.display='none',250)}
+$bg.onclick=closeSheet;
+const val=id=>{const el=document.getElementById(id);return el?el.value.trim():''};
+const segVal=id=>{const b=document.querySelector('#'+id+' .on');return b?b.textContent:''};
+const seg=(id,opts,cur)=>`<div class="seg" id="${id}">${opts.map(o=>`<button type="button" class="${o===cur?'on':''}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on')">${o}</button>`).join('')}</div>`;
+
+function entrySheet(id){
+  const e=D.entries.find(x=>x.id===id)||{cat:filter,date:today()};
+  const c=CATS[e.cat];
+  let f=`<label>날짜</label><input id="fDate" type="date" value="${e.date}">`;
+  if(e.cat==='exercise')f+=`<label>운동 내용</label><input id="fTitle" value="${esc(e.title)}" placeholder="예: 푸쉬업 50, 스쿼트 100">`;
+  if(e.cat==='food')f+=`<label>끼니</label>${seg('fSlot',SLOTS,e.slot||defaultSlot())}
+    <label>음식</label><input id="fTitle" value="${esc(e.title)}" placeholder="예: 현미밥, 닭가슴살">
+    <label>칼로리 (선택)</label><input id="fKcal" type="number" inputmode="numeric" value="${esc(e.kcal)}" placeholder="kcal">`;
+  if(e.cat==='supp')f+=`<label>영양제</label><input id="fTitle" value="${esc(e.title)}" placeholder="예: 비타민D, 오메가3">
+    <label>복용량·시간 (선택)</label><input id="fDose" value="${esc(e.dose)}" placeholder="예: 1알, 아침 식후">`;
+  if(e.cat==='checkup')f+=`<label>검진 종류</label><input id="fTitle" value="${esc(e.title||'일반 건강검진')}" list="cTypes">
+    <datalist id="cTypes"><option>일반 건강검진</option><option>암 검진</option><option>위내시경</option><option>대장내시경</option><option>치과 검진</option><option>혈액 검사</option></datalist>
+    <label>병원 (선택)</label><input id="fPlace" value="${esc(e.place)}">`;
+  f+=`<label>메모 (선택)</label><textarea id="fMemo" placeholder="${e.cat==='checkup'?'결과, 다음 검진 주기 등':'느낌, 참고할 점 등'}">${esc(e.memo)}</textarea>`;
+  openSheet(`<div class="sheet-head"><button onclick="closeSheet()">취소</button>
+    <b style="color:${c.color}">${c.name} ${id?'수정':'추가'}</b>
+    <button onclick="saveEntry('${id||''}','${e.cat}')"><b>저장</b></button></div>${f}
+    ${id?`<button class="btn ghost" style="margin-top:16px" onclick="delEntry('${id}')">삭제</button>`:''}`);
+}
+function defaultSlot(){const h=new Date().getHours();return h<10?'아침':h<15?'점심':h<21?'저녁':'간식'}
+function saveEntry(id,cat){
+  const o={cat,date:val('fDate')||today(),title:val('fTitle'),memo:document.getElementById('fMemo').value.trim()};
+  if(!o.title)return alert('내용을 입력해주세요');
+  if(cat==='food'){o.slot=segVal('fSlot');o.kcal=val('fKcal')}
+  if(cat==='supp')o.dose=val('fDose');
+  if(cat==='checkup')o.place=val('fPlace');
+  if(id)Object.assign(D.entries.find(x=>x.id===id),o);else D.entries.push({id:uid(),...o});
+  save();closeSheet();render();
+}
+function delEntry(id){if(!confirm('삭제할까요?'))return;D.entries=D.entries.filter(x=>x.id!==id);save();closeSheet();render()}
+
+// ---------- 백업/복원 ----------
+function settingsSheet(){
+  openSheet(`<div class="sheet-head"><span style="width:40px"></span><b>설정</b><button onclick="closeSheet()"><b>완료</b></button></div>
+  <div class="set-list">
+    <button class="set-row" onclick="exportData()"><span class="si" style="background:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></span>데이터 내보내기<span class="ar">›</span></button>
+    <button class="set-row" onclick="document.getElementById('importFile').click()"><span class="si" style="background:var(--c-supp)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></span>데이터 가져오기<span class="ar">›</span></button>
+  </div>
+  <div class="set-note">내보내기는 백업 파일(.json)로 저장돼요. 아이폰에서는 '파일' 앱에 저장하면 돼요.<br>가져오기를 하면 지금 데이터는 백업 파일 내용으로 바뀌어요.</div>`);
+}
+function exportData(){
+  const txt=JSON.stringify(D,null,1);
+  const name='health-backup-'+today()+'.json';
+  try{
+    const file=new File([txt],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:name}).catch(()=>{});return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+  }catch(e){prompt('아래 내용을 복사해서 보관하세요',txt)}
+}
+function importData(input){
+  const f=input.files&&input.files[0];input.value='';if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{const o=JSON.parse(r.result);if(!o||!Array.isArray(o.entries))throw 0;
+      if(!confirm('지금 데이터를 백업 파일 내용으로 바꿀까요?'))return;
+      D=Object.assign({},def,o);save();closeSheet();render();alert('가져오기 완료')}
+    catch(e){alert('이 앱의 백업 파일이 아니에요')}
+  };
+  r.readAsText(f);
+}
+
+render();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
+</script>
+</body>
+</html>

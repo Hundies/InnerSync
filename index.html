@@ -81,12 +81,13 @@ label{display:block;font-size:13px;color:var(--sub);margin:10px 0 5px}
 .entry .s{font-size:13px;color:var(--sub);margin-top:2px;white-space:pre-wrap;word-break:break-all}
 .entry .tag{font-size:12px;font-weight:600;padding:3px 8px;border-radius:20px;align-self:center;margin-right:12px;white-space:nowrap}
 
-.tumblers{display:flex;flex-wrap:wrap;gap:10px;min-height:86px;align-items:flex-end;margin:12px 0 4px}
-.tumbler{width:34px;height:84px;border:none;background:none;padding:0}
+.tumblers{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 2px}
+.tumbler,.tumbler-slot{width:100%;aspect-ratio:40/100;border:none;background:none;padding:0}
 .tumbler svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 3px rgba(0,0,0,.12))}
 .tumbler.pop{animation:pop .5s cubic-bezier(.34,1.6,.5,1)}
 @keyframes pop{0%{transform:translateY(16px) scale(.3);opacity:0}100%{transform:none;opacity:1}}
-.water-empty{color:var(--sub);font-size:14px;align-self:center;width:100%;text-align:center}
+.water-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:14px}
+.water-add:disabled{opacity:.4}
 .water-add{border:none;background:#E5F1FF;color:var(--blue);font-family:inherit;font-size:16px;font-weight:700;padding:12px 18px;border-radius:12px}
 .liter{font-family:'Snell Roundhand','Apple Chancery','Brush Script MT',cursive;font-style:italic;font-weight:400;font-size:30px;color:var(--sub);margin-left:3px}
 .goal-btn{border:none;background:none;color:var(--blue);font-family:inherit;font-size:14px;font-weight:600;padding:4px 6px}
@@ -216,9 +217,9 @@ function vSummary(){
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:center">
       <div class="big">${liters(w)}<span class="liter">ℓ</span></div>
-      <button class="water-add" onclick="addWater()">+ 500ml</button>
+      <button class="water-add" onclick="addWater()" ${w>=MAX_TUMBLERS?'disabled':''}>+ 500ml</button>
     </div>
-    <div class="tumblers">${w?Array.from({length:w},(_,i)=>`<button class="tumbler ${i===w-1&&justAdded?'pop':''}" onclick="removeWater()">${TUMBLER_SVG}</button>`).join(''):'<div class="water-empty">아직 마신 물이 없어요</div>'}</div>
+    <div class="tumblers">${Array.from({length:MAX_TUMBLERS},(_,i)=>i<w?`<button class="tumbler ${i===w-1&&justAdded?'pop':''}" onclick="removeWater()">${TUMBLER_SVG}</button>`:'<div class="tumbler-slot"></div>').join('')}${w?'':'<div class="water-empty">아직 마신 물이 없어요</div>'}</div>
   </div>
 
   <div class="sec-title">오늘</div>
@@ -313,7 +314,8 @@ function setFilter(f){
 document.getElementById('nav').onclick=e=>{const b=e.target.closest('button');if(b)go(b.dataset.tab)};
 let justAdded=false;
 const liters=n=>String(+(n*TUMBLER_ML/1000).toFixed(1));
-function addWater(){const t=today();D.water[t]=(D.water[t]||0)+1;save();justAdded=true;render();justAdded=false}
+const MAX_TUMBLERS=4;
+function addWater(){const t=today();if((D.water[t]||0)>=MAX_TUMBLERS)return;D.water[t]=(D.water[t]||0)+1;save();justAdded=true;render();justAdded=false}
 function removeWater(){const t=today();if(!(D.water[t]>0))return;if(!confirm('텀블러 1개(500ml)를 지울까요?'))return;D.water[t]--;save();render()}
 // 텀블러 그림 (세이지 민트 본체 + 검정 뚜껑)
 const TUMBLER_SVG=`<svg viewBox="0 0 40 100" xmlns="http://www.w3.org/2000/svg">

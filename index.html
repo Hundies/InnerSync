@@ -131,7 +131,10 @@ nav button.on{color:var(--red)}
 .note-back svg{width:22px;height:22px}
 .note-cat{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--cat);background:var(--catSoft);padding:4px 10px 4px 8px;border-radius:20px}
 .note-cat svg{width:14px;height:14px}
-.note-date{font-size:13px;color:var(--sub);margin-left:auto}
+.note-date{font-size:13px;color:var(--sub);margin-left:auto;position:relative;display:block}
+.note-date input{display:none}
+.note-date.pick{color:var(--cat);font-weight:700;background:var(--catSoft);padding:5px 10px;border-radius:20px}
+.note-date.pick input{display:block;position:absolute;inset:0;opacity:0;width:100%;height:100%;padding:0;border:none}
 .note-del{border:none;background:none;color:var(--sub);padding:6px}
 .note-del svg{width:20px;height:20px}
 .note-title{border:none;background:none;font-size:26px;font-weight:800;padding:8px 20px 6px;border-radius:0;outline:none;color:var(--text)}
@@ -306,7 +309,7 @@ html,body{overscroll-behavior:none}
   <div class="note-top">
     <button class="note-back" onclick="closeNote()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>완료</button>
     <span class="note-cat" id="noteCat"></span>
-    <span class="note-date" id="noteDate"></span>
+    <label class="note-date" id="noteDateWrap"><span id="noteDate"></span><input type="date" id="noteDateIn" onchange="noteDate=this.value||noteDate;document.getElementById('noteDate').textContent='검진일 '+fmtY(noteDate)"></label>
     <button class="note-pin" id="notePin" onclick="toggleNotePin()" aria-label="고정"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 2.5l6 6-2.2.8-3.6 3.6.4 4.6-1.6 1.6-4.2-4.2-5.6 5.6-1.1-1.1 5.6-5.6L5 9.6 6.6 8l4.6.4 3.6-3.6z"/></svg></button>
     <button class="note-del" id="noteDel" onclick="deleteNote()" aria-label="삭제"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
   </div>
@@ -462,8 +465,7 @@ function vSummary(){
   <div class="sec-title">최근 검진</div>
   <div class="card check-card" onclick="goRoutine('checkup')">
     <div class="ci">${I.checkup}</div>
-    ${pinCheck?`<div style="flex:1;min-width:0"><div class="big" style="font-size:22px">${fmtY(pinCheck.date)}</div>
-      <div class="muted">${esc(pinCheck.title||'제목 없음')} · ${diffDays(t,pinCheck.date)===0?'오늘':diffDays(t,pinCheck.date)+'일 전'}</div></div>`
+    ${pinCheck?`<div style="flex:1;min-width:0"><div class="big" style="font-size:24px">${fmtY(pinCheck.date)}</div></div>`
     :'<div class="muted" style="flex:1">루틴의 검진에서 메모를 고정하면<br>그 날짜가 여기에 나와요</div>'}
   </div>
 `;
@@ -870,7 +872,7 @@ $bg.onclick=closeSheet;
 // ---------- 노트 편집기 ----------
 const $note=document.getElementById('note'), $ed=document.getElementById('noteEd'), $nt=document.getElementById('noteTitle');
 const SOFT={exercise:'#FFE5EA',food:'#FFF1DE',supp:'#E3F7E8',checkup:'#E5F1FF'};
-let noteId=null, noteCat='exercise', notePinned=false, hist=[], lastSnapAt=0, savedRange=null;
+let noteId=null, noteCat='exercise', noteDate='', notePinned=false, hist=[], lastSnapAt=0, savedRange=null;
 function toggleNotePin(){notePinned=!notePinned;document.getElementById('notePin').classList.toggle('on',notePinned)}
 const EMPTY_LINE='<div class="ln"><br></div>';
 
@@ -880,7 +882,11 @@ function openNote(id){
   $note.style.setProperty('--cat',CATS[noteCat].color);
   $note.style.setProperty('--catSoft',SOFT[noteCat]);
   document.getElementById('noteCat').innerHTML=I[noteCat]+CATS[noteCat].name;
-  document.getElementById('noteDate').textContent=fmt(e?e.date:today());
+  noteDate=e?e.date:today();
+  const isCheck=noteCat==='checkup';
+  document.getElementById('noteDateWrap').classList.toggle('pick',isCheck);
+  document.getElementById('noteDateIn').value=noteDate;
+  document.getElementById('noteDate').textContent=(isCheck?'검진일 '+fmtY(noteDate):fmt(noteDate));
   document.getElementById('noteDel').style.display=e?'':'none';
   notePinned=!!(e&&e.pinned);document.getElementById('notePin').classList.toggle('on',notePinned);
   $nt.value=e?(e.title||''):'';
@@ -899,9 +905,10 @@ function closeNote(){
     else{
       if(e.title!==title||e.html!==html){e.title=title;e.html=html;e.updated=Date.now()}
       if(!!e.pinned!==notePinned){e.pinned=notePinned;e.order=topOrder(e.cat,notePinned)}
+      if(e.cat==='checkup'&&e.date!==noteDate){e.date=noteDate;e.updated=Date.now()}
     }
   }else if(title||hasText){
-    D.entries.push({id:uid(),cat:noteCat,date:today(),title,html,updated:Date.now(),pinned:notePinned,order:topOrder(noteCat,notePinned)});
+    D.entries.push({id:uid(),cat:noteCat,date:noteCat==='checkup'?noteDate:today(),title,html,updated:Date.now(),pinned:notePinned,order:topOrder(noteCat,notePinned)});
   }
   save();
   if(document.activeElement)document.activeElement.blur();
